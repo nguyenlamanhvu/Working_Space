@@ -17,7 +17,7 @@ typedef struct
     char birth[30];
     char hometown[30];
 }thr_human;
-thr_human human={0};
+thr_human human;
 
 static void *thr_handle1(void *args)
 {
@@ -27,10 +27,13 @@ static void *thr_handle1(void *args)
     //critical section 
     printf("Name:");
     fgets(human.name,sizeof(human.name),stdin);
+    human.name[strcspn(human.name, "\n")] = '\0';
     printf("Birth:");
     fgets(human.birth,sizeof(human.birth),stdin);
+    human.birth[strcspn(human.birth, "\n")] = '\0';
     printf("Hometown:");
     fgets(human.hometown,sizeof(human.hometown),stdin);
+    human.hometown[strcspn(human.hometown, "\n")] = '\0';
 
     pthread_cond_signal(&cond);
     pthread_mutex_unlock(&lock1);
@@ -50,19 +53,21 @@ static void *thr_handle2(void *args)
     pthread_mutex_lock(&lock1);
     // ready in advance when pthread_cond_signal() is called
     pthread_cond_wait(&cond, &lock1);
-    write(fd,"Name: ",strlen("Name: "));
-    strncpy(str,human.name,strlen(human.name)-1);
-    write(fd,str,sizeof(str));
-    write(fd,",Birth: ",strlen("Birth: "));
-    strncpy(str2,human.birth,strlen(human.birth)-1);
-    write(fd,str2,sizeof(str2));
-    write(fd,",Hometown: ",strlen("Hometown: "));
-    write(fd,human.hometown,sizeof(human.hometown));
+
+    char buffer[300];
+    int length=snprintf(buffer,sizeof(buffer),"%s | %s | %s\n",human.name,human.birth,human.hometown);
+    printf("%d\n",length);
+
+    ssize_t bytesWritten = write(fd, buffer, length);
+    if (bytesWritten == -1) {
+        perror("write");
+    }
 
     close(fd);
     pthread_mutex_unlock(&lock1);
     pthread_exit(NULL); // exit
 }
+
 
 // static void *thr_handle3(void *args)
 // {
@@ -72,11 +77,6 @@ static void *thr_handle2(void *args)
 
 int main(int argc, char *argv[]){
     int ret;
-    
-    if(open("thongtinsinhvien.txt", O_RDWR|O_CREAT,0666)==-1){
-        perror("open() error");
-        return -1;
-    }
 
     if(ret = pthread_create(&thread_id1,NULL,&thr_handle1,NULL)){
         perror("pthread_create() 1 error");
