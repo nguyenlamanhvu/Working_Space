@@ -24,7 +24,7 @@ int main() {
 	sigemptyset(&old_set);
 
 	//sigaddset(&new_set, SIGINT);
-	//sigaddset(&new_set, SIGCHLD);
+	sigaddset(&new_set, SIGCHLD);
  	printf("new_set is %x\n", new_set);
 
         if (sigprocmask(SIG_SETMASK, &new_set, &old_set) == 0) {
