@@ -11,7 +11,6 @@ pthread_t thread_id1, thread_id2, thread_id3;
 int fd;
 char buffer[300];
 pthread_mutex_t lock1 = PTHREAD_MUTEX_INITIALIZER;
-pthread_mutex_t lock2 = PTHREAD_MUTEX_INITIALIZER;
 pthread_cond_t cond = PTHREAD_COND_INITIALIZER;
 pthread_cond_t cond2 = PTHREAD_COND_INITIALIZER;
 typedef struct
@@ -21,8 +20,6 @@ typedef struct
     char hometown[30];
 }thr_human;
 thr_human human;
-int ready = 0;
-int finished = 0;
 
 static void *thr_handle1(void *args)
 {
@@ -45,7 +42,6 @@ static void *thr_handle1(void *args)
         fgets(human.hometown,sizeof(human.hometown),stdin);
         human.hometown[strcspn(human.hometown, "\n")] = '\0';
 
-        ready=1;
         pthread_cond_signal(&cond);
         pthread_mutex_unlock(&lock1);
     }  
